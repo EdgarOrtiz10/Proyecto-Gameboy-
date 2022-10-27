@@ -1,12 +1,18 @@
 import pygame, random, math
 from pygame import mixer #mixer es para los sonidos
 from pynput import keyboard as kb
+from button import Button
+from tkinter import font
+
+detener = 0.0 #Lo utilizaremos para detener la musica de fondo
+reproducir = 1.0  # Lo utilizaremos para reproducir la musica de fondo 
+
+def get_font(size): # Returns Press-Start-2P in the desired size
+    return pygame.font.Font("./assets/font/8bit_wonder/8-BIT WONDER.TTF", size)
 
 def battle():
     screen = pygame.display.set_mode((800, 600)) # crea la pantalla, en este caso de 800px * 600px
     background = pygame.image.load('./assets/img/fondo.png')
-    mixer.music.load("./assets/img/sound.mp3")
-    mixer.music.play(-1) #loop de la musica o sonido
 
     pygame.display.set_caption("Empire Tanks") #titulo de la ventana 
     icon = pygame.image.load('./assets/img/icon.png') 
@@ -30,6 +36,7 @@ def battle():
     enemyY_change = []
     num_of_enemies = 10
 
+    global bulletImg, bullet_state, bulletX, bulletY, bulletX_change, bulletY_change
     bulletImg = pygame.image.load('./assets/img/bullet.png') #imagen del disparo
     bulletX = 0 #posicion inicial
     bulletY = 480
@@ -44,15 +51,22 @@ def battle():
 
     over_font = pygame.font.Font('freesansbold.ttf', 64)
 
+    def background_music(x):
+        mixer.music.load("./assets/img/sound.mp3")
+        mixer.music.play(-1) #loop de la musica o sonido
+        pygame.mixer.music.set_volume(x)
+
 
     def show_score(x, y):
-        score = font.render("Score : " + str(score_value), True, (0, 255, 0)) # concatenamos una string con la variable score(enemigos muertos), pero primero convertimos esta variable a string
+        score = font.render("Puntaje: " + str(score_value), True, (0, 255, 0)) # concatenamos una string con la variable score(enemigos muertos), pero primero convertimos esta variable a string
         screen.blit(score, (x, y))
 
 
     def game_over_text():
         over_text = over_font.render("GAME OVER", True, (0, 255, 0))
         screen.blit(over_text, (200, 250))
+        EXIT_BUTTON = Button(image=pygame.image.load("assets/img/Play Rect.png"), pos=(400, 344), 
+                            text_input="EXIT", font=get_font(30), base_color="#d7fcd4", hovering_color="White")
 
 
     def player(x, y):
@@ -114,16 +128,16 @@ def battle():
     #                self.rect.center = center
                 
 
-
+    
+    background_music(reproducir)
     running = True #variable boleana para detener el loop del juego, se declara en true.
     while running: #este es el loop del juego, recordar que esta es la base de todo juego un constante loop.
-
         screen.fill((0, 0, 0)) # RGB = (Red, Green, Blue) esta  linea determnia el color de la pantalla, en este caso es negra por su color en RGB.
         screen.blit(background, (0, 0))
         for event in pygame.event.get(): #estamos invocando los eventos que ocurran mientras este corriendo el loop (while)
             if event.type == pygame.QUIT: #esta condicion nos permite salir del juego o terminarlo
                 running = False #y al declarar la variable running false el while se detiene 
-
+                background_music(detener)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     playerImg = pygame.transform.rotate(playerImg, 90)
@@ -164,6 +178,8 @@ def battle():
             if enemyY[i] > 440:
                 for j in range(num_of_enemies):
                     enemyY[j] = 2000
+                
+                pygame.mixer.music.set_volume(0.0)
                 game_over_text()
                 break
             #este es el movimiento de lado a lado y al tocar los limites baja un renglon y se devuelven de lado a lado
@@ -205,3 +221,4 @@ def battle():
         show_score(textX, testY) #metodo para el score
         pygame.display.flip() #Actualizar pantalla
         pygame.display.update() #actualiza el juego 
+
